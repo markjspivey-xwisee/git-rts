@@ -1,0 +1,3 @@
+[submodule "game-repo"]
+	path = game-repo
+	url = https://github.com/markjspivey-xwisee/git-rts-game.git
