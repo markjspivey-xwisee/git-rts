@@ -6,7 +6,11 @@ This document provides a detailed overview of the Git-RTS architecture, explaini
 
 Git-RTS consists of several key components:
 
-![Architecture Diagram](images/architecture-diagram.png)
+<!-- Note: Image placeholder - replace with actual architecture diagram -->
+```
+[This is a placeholder for the architecture diagram]
+The diagram would show the components and their relationships.
+```
 
 ### Components
 

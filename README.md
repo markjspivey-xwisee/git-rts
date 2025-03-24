@@ -1,7 +1,17 @@
 # Git-RTS: A Git-based Real-Time Strategy Game
 
 <div align="center">
-  <img src="docs/images/git-rts-logo.png" alt="Git-RTS Logo" width="300"/>
+  <!-- Note: Image placeholder - replace with actual image -->
+  <pre>
+_____  _  _        ____  _____  ____
+ / ____|| |(_)      |  _ \|_   _|/ ____|
+| |  __ | | _  ___  | |_) | | | | (___
+| | |_ || || |/ __| |  _ <  | |  \___ \
+| |__| || || |\__ \ | |_) |_| |_ ____) |
+ \_____||_||_||___/ |____/|_____|_____/
+                                        
+ Where Git Meets Strategy Gaming
+  </pre>
   <br>
   <strong>Where Git Meets Strategy Gaming</strong>
   <br><br>
@@ -17,7 +27,11 @@
 **Git-RTS** is a revolutionary real-time strategy game that uses Git as its underlying game engine. Players control units, gather resources, and build structures—all through Git operations. Every game action is a commit, every player has their own branch, and game synchronization happens through merges.
 
 <div align="center">
-  <img src="docs/images/gameplay-screenshot.png" alt="Git-RTS Gameplay" width="800"/>
+  <!-- Note: Image placeholder - replace with actual gameplay screenshot -->
+  <pre>
+  [This is a placeholder for the gameplay screenshot]
+  The actual game interface would show units, resources, and the game map.
+  </pre>
 </div>
 
 ### Why Git-RTS?
@@ -67,7 +81,11 @@ npm start
 ```
 
 <div align="center">
-  <img src="docs/images/game-creation.gif" alt="Creating a Game" width="600"/>
+  <!-- Note: Image placeholder - replace with actual game creation animation -->
+  <pre>
+  [This is a placeholder for the game creation animation]
+  The animation would show the process of creating a new game.
+  </pre>
 </div>
 
 ## 🏗️ Architecture
@@ -75,7 +93,11 @@ npm start
 Git-RTS consists of several components that work together to create a seamless gaming experience:
 
 <div align="center">
-  <img src="docs/images/architecture-diagram.png" alt="Git-RTS Architecture" width="700"/>
+  <!-- Note: Image placeholder - replace with actual architecture diagram -->
+  <pre>
+  [This is a placeholder for the architecture diagram]
+  The diagram would show the components and their relationships.
+  </pre>
 </div>
 
 ### Components
@@ -213,14 +235,35 @@ We welcome contributions from everyone! Check out our [Contributing Guide](CONTR
 ## 🌟 Showcase
 
 <div align="center">
+  <!-- Note: Image placeholders - replace with actual screenshots -->
   <table>
     <tr>
-      <td><img src="docs/images/screenshot1.png" alt="Screenshot 1" width="400"/></td>
-      <td><img src="docs/images/screenshot2.png" alt="Screenshot 2" width="400"/></td>
+      <td>
+        <pre>
+[Screenshot 1 placeholder]
+Game interface showing resource management
+        </pre>
+      </td>
+      <td>
+        <pre>
+[Screenshot 2 placeholder]
+Game interface showing combat
+        </pre>
+      </td>
     </tr>
     <tr>
-      <td><img src="docs/images/screenshot3.png" alt="Screenshot 3" width="400"/></td>
-      <td><img src="docs/images/screenshot4.png" alt="Screenshot 4" width="400"/></td>
+      <td>
+        <pre>
+[Screenshot 3 placeholder]
+Game interface showing building construction
+        </pre>
+      </td>
+      <td>
+        <pre>
+[Screenshot 4 placeholder]
+Game interface showing technology tree
+        </pre>
+      </td>
     </tr>
   </table>
 </div>
