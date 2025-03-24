@@ -14,8 +14,15 @@ const path = require('path');
  */
 
 // GitHub credentials
-const username = 'markj'; // Your GitHub username
-const repoName = 'git-rts'; // Repository name
+const username = process.env.GITHUB_USERNAME || 'markjspivey-xwisee'; // Your GitHub username
+const token = process.env.GITHUB_TOKEN; // Your personal access token
+const repoName = process.env.REPO_NAME || 'git-rts'; // Repository name
+
+if (!token) {
+  console.error('Error: GitHub token not provided. Please set the GITHUB_TOKEN environment variable.');
+  console.error('Example: GITHUB_TOKEN=your_token node setup-github-repo.js');
+  process.exit(1);
+}
 
 console.log(`\nSetting up Git-RTS repository for GitHub...`);
 console.log(`Username: ${username}`);
@@ -44,16 +51,16 @@ try {
     const remotes = execSync('git remote').toString().trim().split('\n');
     if (remotes.includes('origin')) {
       console.log('\nRemote "origin" already exists. Updating URL...');
-      execSync(`git remote set-url origin https://github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
+      execSync(`git remote set-url origin https://${username}:${token}@github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
     } else {
       // Add remote
       console.log('\nAdding remote...');
-      execSync(`git remote add origin https://github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
+      execSync(`git remote add origin https://${username}:${token}@github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
     }
   } catch (error) {
     // Add remote
     console.log('\nAdding remote...');
-    execSync(`git remote add origin https://github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
+    execSync(`git remote add origin https://${username}:${token}@github.com/${username}/${repoName}.git`, { stdio: 'inherit' });
   }
   
   // Create repository on GitHub if it doesn't exist
@@ -75,13 +82,22 @@ try {
       execSync(`gh repo create ${repoName} --public --description "Git-based Real-Time Strategy Game"`, { stdio: 'inherit' });
     }
   } catch (error) {
-    console.log('\nGitHub CLI not installed or not authenticated. Please create the repository manually:');
-    console.log(`1. Go to https://github.com/new`);
-    console.log(`2. Repository name: ${repoName}`);
-    console.log(`3. Description: Git-based Real-Time Strategy Game`);
-    console.log(`4. Make it Public`);
-    console.log(`5. Do NOT initialize with README, .gitignore, or license`);
-    console.log(`6. Click "Create repository"`);
+    console.log('\nGitHub CLI not installed or not authenticated. Creating repository via API...');
+    
+    try {
+      // Create repository via API
+      const curlCommand = `curl -X POST -H "Authorization: token ${token}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/user/repos -d "{\\"name\\":\\"${repoName}\\",\\"description\\":\\"Git-based Real-Time Strategy Game\\",\\"private\\":false}"`;
+      execSync(curlCommand, { stdio: 'pipe' });
+      console.log(`\nRepository ${username}/${repoName} created on GitHub.`);
+    } catch (error) {
+      console.log('\nFailed to create repository via API. Please create it manually:');
+      console.log(`1. Go to https://github.com/new`);
+      console.log(`2. Repository name: ${repoName}`);
+      console.log(`3. Description: Git-based Real-Time Strategy Game`);
+      console.log(`4. Make it Public`);
+      console.log(`5. Do NOT initialize with README, .gitignore, or license`);
+      console.log(`6. Click "Create repository"`);
+    }
   }
   
   // Push to GitHub
@@ -91,14 +107,16 @@ try {
     console.log('\nRepository successfully pushed to GitHub!');
   } catch (error) {
     console.error('\nError pushing to GitHub:', error.message);
-    console.log('\nYou may need to create a personal access token:');
-    console.log('1. Go to https://github.com/settings/tokens');
-    console.log('2. Click "Generate new token"');
-    console.log('3. Give it a name and select the "repo" scope');
-    console.log('4. Click "Generate token"');
-    console.log('5. Use the token as your password when pushing');
-    console.log('\nThen try pushing manually:');
-    console.log('git push -u origin master');
+    console.log('\nTrying alternative push method...');
+    
+    try {
+      execSync(`git push -u https://${username}:${token}@github.com/${username}/${repoName}.git master`, { stdio: 'inherit' });
+      console.log('\nRepository successfully pushed to GitHub!');
+    } catch (pushError) {
+      console.error('\nError pushing to GitHub with token:', pushError.message);
+      console.log('\nPlease try pushing manually:');
+      console.log(`git push -u https://${username}:${token}@github.com/${username}/${repoName}.git master`);
+    }
   }
   
   console.log('\nSetup complete!');
