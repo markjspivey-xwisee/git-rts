@@ -1,16 +1,33 @@
 {
-  "name": "git-rts-cli",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "git-rts",
+  "version": "0.1.0",
+  "description": "Git-based Real-Time Strategy Game",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "npm install && npm run install:cli && npm run install:mcp && npm run install:web",
+    "install:cli": "cd git-rts-cli && npm install",
+    "install:mcp": "cd git-rts-mcp && npm install",
+    "install:web": "cd git-rts-web && npm install",
+    "build": "npm run build:cli && npm run build:mcp && npm run build:web",
+    "build:cli": "cd git-rts-cli && npm run build",
+    "build:mcp": "cd git-rts-mcp && npm run build",
+    "build:web": "cd git-rts-web && npm run build",
+    "start:cli": "cd git-rts-cli && npm start",
+    "start:mcp": "cd git-rts-mcp && npm start",
+    "start:web": "cd git-rts-web && npm start",
+    "test": "npm run test:cli && npm run test:mcp && npm run test:web",
+    "test:cli": "cd git-rts-cli && npm test",
+    "test:mcp": "cd git-rts-mcp && npm test",
+    "test:web": "cd git-rts-web && npm test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "commander": "^13.1.0",
-    "n3": "^1.24.2"
-  }
+  "workspaces": [
+    "git-rts-cli",
+    "git-rts-mcp",
+    "git-rts-web"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markjspivey-xwisee/git-rts.git"
+  },
+  "author": "markjspivey-xwisee",
+  "license": "MIT"
 }

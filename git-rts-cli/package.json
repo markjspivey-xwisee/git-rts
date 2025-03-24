@@ -1,0 +1,17 @@
+{
+  "name": "git-rts-cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for Git-RTS",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node src/test-git-mechanics.js"
+  },
+  "bin": {
+    "git-rts": "./src/index.js"
+  },
+  "dependencies": {
+    "commander": "^9.0.0",
+    "simple-git": "^3.0.0"
+  }
+}
