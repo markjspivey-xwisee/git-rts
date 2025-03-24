@@ -1,0 +1,37 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game Interface                                       |
+|                                                               |
+|  +-------------------+                 +-------------------+  |
+|  |                   |                 |                   |  |
+|  |                   |                 |  Resources:       |  |
+|  |                   |                 |  Gold: 250        |  |
+|  |                   |                 |  Wood: 180        |  |
+|  |                   |                 |  Stone: 120       |  |
+|  |                   |                 |  Food: 350        |  |
+|  |                   |                 |                   |  |
+|  |     Game Map      |                 +-------------------+  |
+|  |                   |                                        |
+|  |     [Units]       |                 +-------------------+  |
+|  |     [Buildings]   |                 |                   |  |
+|  |     [Resources]   |                 |  Selected Unit:   |  |
+|  |                   |                 |  Warrior          |  |
+|  |                   |                 |  Health: 100/100  |  |
+|  |                   |                 |  Attack: 10       |  |
+|  |                   |                 |  Defense: 5       |  |
+|  |                   |                 |                   |  |
+|  +-------------------+                 +-------------------+  |
+|                                                               |
+|  +-----------------------------------------------------------+|
+|  |                                                           ||
+|  |  Command Console                                          ||
+|  |  > Move unit1 to (10, 20)                                 ||
+|  |  > Gather resources from goldMine1                        ||
+|  |  > Build barracks at (15, 25)                             ||
+|  |                                                           ||
+|  +-----------------------------------------------------------+|
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of the gameplay screenshot.
+For a proper image, please create a PNG or SVG file and place it here.

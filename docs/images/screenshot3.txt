@@ -1,0 +1,14 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game - Combat                                        |
+|                                                               |
+|  [Game map showing a battle between two armies with           |
+|   warriors, archers, cavalry, and siege engines]              |
+|                                                               |
+|  Units are engaged in combat, with health bars visible.       |
+|  The terrain affects combat with hills providing defense.     |
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of screenshot3.
+For a proper image, please create a PNG file and place it here.

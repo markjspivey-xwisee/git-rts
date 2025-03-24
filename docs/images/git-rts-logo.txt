@@ -1,0 +1,11 @@
+_____  _  _        ____  _____  ____  
+ / ____|| |(_)      |  _ \|_   _|/ ____|
+| |  __ | | _  ___  | |_) | | | | (___  
+| | |_ || || |/ __| |  _ <  | |  \___ \ 
+| |__| || || |\__ \ | |_) |_| |_ ____) |
+ \_____||_||_||___/ |____/|_____|_____/ 
+                                        
+ Where Git Meets Strategy Gaming
+
+Note: This is a text representation of the Git-RTS logo.
+For a proper image, please create a PNG or SVG file and place it here.

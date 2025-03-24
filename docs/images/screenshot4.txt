@@ -1,0 +1,14 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game - Technology Tree                               |
+|                                                               |
+|  [Technology tree interface showing available technologies,    |
+|   prerequisites, and effects]                                 |
+|                                                               |
+|  The technology tree shows research progress and available    |
+|  technologies. Completed research is highlighted.             |
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of screenshot4.
+For a proper image, please create a PNG file and place it here.

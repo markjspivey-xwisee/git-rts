@@ -1,0 +1,44 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game Creation Process                                |
+|                                                               |
+|  Step 1: Create a new game repository                         |
+|  +-----------------------------------------------------------+|
+|  |                                                           ||
+|  |  $ git-rts create-game https://github.com/user/my-game.git||
+|  |  "My RTS World"                                           ||
+|  |                                                           ||
+|  |  Creating new game: My RTS World                          ||
+|  |  Repository URL: https://github.com/user/my-game.git      ||
+|  |  Cloning template repository...                           ||
+|  |  Updating ontology URIs...                                ||
+|  |  Game "My RTS World" created successfully!                ||
+|  |                                                           ||
+|  +-----------------------------------------------------------+|
+|                                                               |
+|  Step 2: Create a player                                      |
+|  +-----------------------------------------------------------+|
+|  |                                                           ||
+|  |  $ git-rts create-player "Player One"                     ||
+|  |                                                           ||
+|  |  Creating new player: Player One                          ||
+|  |  Creating branch: player/player-one                       ||
+|  |  Player "Player One" created successfully!                ||
+|  |                                                           ||
+|  +-----------------------------------------------------------+|
+|                                                               |
+|  Step 3: Start the web interface                              |
+|  +-----------------------------------------------------------+|
+|  |                                                           ||
+|  |  $ cd git-rts-web                                         ||
+|  |  $ npm start                                              ||
+|  |                                                           ||
+|  |  Starting the development server...                       ||
+|  |  Server running at http://localhost:3000                  ||
+|  |                                                           ||
+|  +-----------------------------------------------------------+|
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of the game creation GIF.
+For a proper animated GIF, please create one and place it here.

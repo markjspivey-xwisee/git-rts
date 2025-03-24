@@ -1,0 +1,17 @@
++-------------------+     +-------------------+     +-------------------+
+|                   |     |                   |     |                   |
+|    Git-RTS CLI    |---->|    Git-RTS MCP    |---->|    Git-RTS Web    |
+|                   |     |      Server       |     |    Interface      |
+|                   |     |                   |     |                   |
++-------------------+     +-------------------+     +-------------------+
+          |                        |                        |
+          |                        |                        |
+          v                        v                        v
++-----------------------------------------------------------+
+|                                                           |
+|                     Game Repository                       |
+|                                                           |
++-----------------------------------------------------------+
+
+Note: This is a text representation of the architecture diagram.
+For a proper image, please create a PNG or SVG file and place it here.

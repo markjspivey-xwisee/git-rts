@@ -1,0 +1,8 @@
+{
+  "github": {
+    "username": "YOUR_GITHUB_USERNAME",
+    "token": "YOUR_PERSONAL_ACCESS_TOKEN",
+    "repository": "git-rts-game"
+  },
+  "gameRepoDir": "C:/Users/markj/Desktop/game-repo"
+}

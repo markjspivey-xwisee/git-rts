@@ -1,0 +1,14 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game - Base Building                                 |
+|                                                               |
+|  [Game map showing a player's base with various buildings:    |
+|   Town Center, Barracks, Market, and defensive structures]    |
+|                                                               |
+|  The base is well-organized with buildings placed             |
+|  strategically. Walls and towers provide defense.             |
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of screenshot2.
+For a proper image, please create a PNG file and place it here.

@@ -1,0 +1,14 @@
++---------------------------------------------------------------+
+|                                                               |
+|  Git-RTS Game - Resource Gathering                            |
+|                                                               |
+|  [Game map showing units gathering resources from mines,      |
+|   forests, and quarries]                                      |
+|                                                               |
+|  Units are collecting gold, wood, and stone resources.        |
+|  The resource counters in the top right are increasing.       |
+|                                                               |
++---------------------------------------------------------------+
+
+Note: This is a text representation of screenshot1.
+For a proper image, please create a PNG file and place it here.
