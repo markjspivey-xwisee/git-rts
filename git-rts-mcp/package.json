@@ -1,19 +1,28 @@
 {
   "name": "git-rts-mcp",
   "version": "0.1.0",
-  "description": "Model Context Protocol server for Git-RTS",
-  "main": "build/index.js",
+  "description": "MCP server for Git-based RTS game",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node build/index.js",
-    "dev": "ts-node src/index.ts"
+    "start": "node build/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.1.0"
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "@types/rdf-js": "^4.0.2",
+    "axios": "^1.6.0",
+    "express": "^4.17.1",
+    "n3": "^1.24.2",
+    "node-fetch": "^3.3.2",
+    "rdf-ext": "^2.5.2",
+    "sparql-engine": "^0.8.3",
+    "sparql-http-client": "^3.0.1",
+    "sparqljs": "^3.7.3"
   },
   "devDependencies": {
-    "typescript": "^4.9.0",
-    "ts-node": "^10.9.0",
-    "@types/node": "^18.0.0"
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.11.12",
+    "typescript": "^5.0.0"
   }
 }

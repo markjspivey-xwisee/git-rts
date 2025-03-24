@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git-RTS Visualization Dashboard</title>
+    <style>
+        /* Add a notification area for real-time updates */
+        .notification {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #d4edda;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        /* Selection indicator for units */
+        .selection-indicator {
+            position: absolute;
+            border: 2px dashed #ff0;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+        }
+        
+        /* Path indicator for movement */
+        .path-indicator {
+            position: absolute;
+            border: 1px dashed #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 5;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            background-color: white;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .game-map {
+            flex: 3;
+            padding: 20px;
+            position: relative;
+        }
+        .game-info {
+            flex: 1;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-left: 1px solid #eee;
+            overflow-y: auto;
+            max-height: 800px;
+        }
+        canvas {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .resources {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .units, .buildings, .resource-nodes {
+            margin-bottom: 20px;
+        }
+        .entity {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .player-info {
+            margin-bottom: 20px;
+        }
+        .map-legend {
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        /* Player colors will be set dynamically via JavaScript */
+        .legend-color.town-center {
+            background-color: #4169E1;
+        }
+        .legend-color.gold {
+            background-color: #FFD700;
+        }
+        .legend-color.wood {
+            background-color: #8B4513;
+        }
+        .legend-color.stone {
+            background-color: #A9A9A9;
+        }
+        .legend-color.food {
+            background-color: #32CD32;
+        }
+        .game-log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        /* Action panel styles */
+        .action-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+        }
+        .action-button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        .action-button:hover {
+            background-color: #45a049;
+        }
+        .action-button.active {
+            background-color: #2E7D32;
+        }
+        
+        /* Building menu styles */
+        .building-menu {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+        }
+        .building-button {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        .building-button:hover {
+            background-color: #0b7dda;
+        }
+        .building-button.active {
+            background-color: #0b5394;
+        }
+        
+        /* Technology tree styles */
+        .tech-tree {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+        }
+        .tech-button {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #9C27B0;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        .tech-button:hover {
+            background-color: #7B1FA2;
+        }
+        .tech-button.active {
+            background-color: #4A148C;
+        }
+        
+        /* Diplomacy panel styles */
+        .diplomacy-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: none;
+        }
+        .diplomacy-button {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        .diplomacy-button:hover {
+            background-color: #F57C00;
+        }
+        .diplomacy-button.active {
+            background-color: #E65100;
+        }
+        
+        /* Tab navigation */
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            border-bottom: 1px solid #ccc;
+            position: relative;
+            z-index: 10;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #ddd;
+            border-radius: 5px 5px 0 0;
+            margin-right: 2px;
+            border: 1px solid #ccc;
+            border-bottom: none;
+        }
+        .tab.active {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            position: relative;
+            top: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Git-RTS Visualization Dashboard</h1>
+            <div id="notification" class="notification">Game state updated!</div>
+            <p>This is a read-only visualization of the game state. Use the CLI or MCP to control the game.</p>
+        </div>
+        <div class="game-container">
+            <div class="game-map">
+                <h2>Game Map</h2>
+                <canvas id="gameMap" width="600" height="600"></canvas>
+                <div id="selectionIndicator" class="selection-indicator"></div>
+                <div id="pathIndicator" class="path-indicator"></div>
+                
+                <!-- Tabs for different action panels -->
+                <div class="tabs">
+                    <div id="unitsTab" class="tab active">Units</div>
+                    <div id="buildingsTab" class="tab">Buildings</div>
+                    <div id="techTab" class="tab">Technology</div>
+                    <div id="diplomacyTab" class="tab">Diplomacy</div>
+                </div>
+                
+                <!-- Unit action panel -->
+                <div id="actionPanel" class="action-panel">
+                    <button id="moveButton" class="action-button">Move</button>
+                    <button id="attackButton" class="action-button">Attack</button>
+                    <button id="gatherButton" class="action-button">Gather</button>
+                    <button id="patrolButton" class="action-button">Patrol</button>
+                </div>
+                
+                <!-- Building construction panel -->
+                <div id="buildingMenu" class="building-menu">
+                    <button id="townCenterButton" class="building-button">Town Center (500 gold, 300 wood)</button>
+                    <button id="barracksButton" class="building-button">Barracks (150 gold, 200 wood)</button>
+                    <button id="towerButton" class="building-button">Tower (100 gold, 100 stone)</button>
+                    <button id="farmButton" class="building-button">Farm (50 gold, 100 wood)</button>
+                </div>
+                
+                <!-- Technology research panel -->
+                <div id="techTree" class="tech-tree">
+                    <button id="militaryTechButton" class="tech-button">Military Tech (200 gold, 100 food)</button>
+                    <button id="economyTechButton" class="tech-button">Economy Tech (150 gold, 150 food)</button>
+                    <button id="defenseTechButton" class="tech-button">Defense Tech (150 gold, 150 stone)</button>
+                    <button id="advancedTechButton" class="tech-button" disabled>Advanced Tech (500 gold, 300 food)</button>
+                </div>
+                
+                <!-- Diplomacy panel -->
+                <div id="diplomacyPanel" class="diplomacy-panel">
+                    <button id="allianceButton" class="diplomacy-button">Propose Alliance</button>
+                    <button id="tradeButton" class="diplomacy-button">Trade Resources</button>
+                    <button id="peaceTreatyButton" class="diplomacy-button">Peace Treaty</button>
+                </div>
+                
+                <div class="map-legend">
+                    <h3>Map Legend</h3>
+                    <!-- Player legend items will be added dynamically -->
+                    <div class="legend-item"><span class="legend-color town-center"></span> Town Center</div>
+                    <div class="legend-item"><span class="legend-color gold"></span> Gold Mine</div>
+                    <div class="legend-item"><span class="legend-color wood"></span> Forest (Wood)</div>
+                    <div class="legend-item"><span class="legend-color stone"></span> Quarry (Stone)</div>
+                    <div class="legend-item"><span class="legend-color food"></span> Farm (Food)</div>
+                </div>
+                <div class="game-log">
+                    <h3>Game Log</h3>
+                    <div id="gameLog"></div>
+                </div>
+            </div>
+            <div class="game-info">
+                <h2>Game Information</h2>
+                <div class="player-info">
+                    <h3>Players</h3>
+                    <div id="playersList"></div>
+                </div>
+                <div class="resources">
+                    <h3>Resources</h3>
+                    <div id="playerResources"></div>
+                </div>
+                <div class="units">
+                    <h3>Units</h3>
+                    <div id="unitsList"></div>
+                </div>
+                <div class="buildings">
+                    <h3>Buildings</h3>
+                    <div id="buildingsList"></div>
+                </div>
+                <div class="resource-nodes">
+                    <h3>Resource Nodes</h3>
+                    <div id="resourceNodesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Game state
+        const gameState = {
+            world: { name: 'Loading...', size: 100 },
+            units: [],
+            buildings: [],
+            resourceNodes: [],
+            players: []
+        };
+        
+        // Player colors map - will be populated dynamically
+        const playerColors = {};
+        
+        // Game action state
+        let selectedUnit = null;
+        let selectedBuilding = null;
+        let activeTool = null;
+        let buildingToBuild = null;
+        let techToResearch = null;
+        let targetPosition = null;
+
+        // Connect to Socket.IO server
+        const socket = io();
+        
+        // Listen for game state updates
+        socket.on('gameState', (data) => {
+            console.log('Received game state update');
+            parseGameState(data);
+            updateUI();
+            renderGameState();
+            showNotification('Game state updated!');
+        });
+        
+        // Listen for game log updates
+        socket.on('gameLog', (data) => {
+            console.log('Received game log update');
+            document.getElementById('gameLog').innerHTML = formatGameLog(data);
+            showNotification('Game log updated!');
+        });
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            if (type === 'error') {
+                notification.style.backgroundColor = '#f8d7da';
+            } else {
+                notification.style.backgroundColor = '#d4edda';
+            }
+            
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Get canvas context
+        const canvas = document.getElementById('gameMap');
+        const ctx = canvas.getContext('2d');
+        const selectionIndicator = document.getElementById('selectionIndicator');
+        const pathIndicator = document.getElementById('pathIndicator');
+
+        // Load game state from API
+        async function loadGameState() {
+            try {
+                // Initial load via HTTP (Socket.IO will handle updates)
+                const gameStateResponse = await fetch('/api/game-state');
+                const gameStateData = await gameStateResponse.json();
+                parseGameState(gameStateData);
+                
+                // Load game log
+                await loadGameLog();
+                
+                // Update UI
+                updateUI();
+                renderGameState();
+                
+                // Signal that game state is loaded
+                window.gameStateLoaded = true;
+                // Dispatch an event that interactive-map.js can listen for
+                window.dispatchEvent(new Event('gameStateLoaded'));
+            } catch (error) {
+                console.error('Error loading game state:', error);
+                loadMockData(); // Fallback to mock data
+                
+                // Signal that game state is loaded
+                window.gameStateLoaded = true;
+                // Dispatch an event that interactive-map.js can listen for
+                window.dispatchEvent(new Event('gameStateLoaded'));
+            }
+        }
+
+        // Load game log from API
+        async function loadGameLog() {
+            try {
+                // Initial load via HTTP (Socket.IO will handle updates)
+                const response = await fetch('/api/game-log');
+                const data = await response.json();
+                document.getElementById('gameLog').innerHTML = formatGameLog(data.gameLog);
+            } catch (error) {
+                console.error('Error loading game log:', error);
+            }
+        }
+        
+        // Format game log
+        function formatGameLog(log) {
+            return log.split('\n').map(line => `<div>${line}</div>`).join('');
+        }
+
+        // Parse game state from API response
+        function parseGameState(data) {
+            // Parse world data
+            const worldNameMatch = data.world.match(/game:name "([^"]+)"/);
+            const worldSizeMatch = data.world.match(/game:size (\d+)/);
+            
+            gameState.world = {
+                name: worldNameMatch ? worldNameMatch[1] : 'Unknown World',
+                size: worldSizeMatch ? parseInt(worldSizeMatch[1]) : 100
+            };
+
+            // Parse units data
+            gameState.units = [];
+            const unitMatches = data.units.matchAll(/game:unit\d+ a game:Unit;[\s\S]*?game:name "([^"]+)"[\s\S]*?game:attack (\d+)[\s\S]*?game:defense (\d+)[\s\S]*?game:health (\d+)[\s\S]*?game:location "{x: (\d+), y: (\d+)}"/g);
+            
+            for (const match of unitMatches) {
+                const [_, name, attack, defense, health, x, y] = match;
+                gameState.units.push({
+                    id: `game:unit${gameState.units.length + 1}`,
+                    name,
+                    attack: parseInt(attack),
+                    defense: parseInt(defense),
+                    health: parseInt(health),
+                    x: parseInt(x),
+                    y: parseInt(y),
+                    player: null // Will be assigned when processing player data
+                });
+            }
+
+            // Parse buildings data
+            gameState.buildings = [];
+            if (data.buildings) {
+                const buildingMatches = data.buildings.matchAll(/game:building\d+ a game:Building;[\s\S]*?game:type "([^"]+)"[\s\S]*?game:health (\d+)[\s\S]*?game:location "{x: (\d+), y: (\d+)}"/g);
+                
+                for (const match of buildingMatches) {
+                    const [_, type, health, x, y] = match;
+                    gameState.buildings.push({
+                        id: `game:building${gameState.buildings.length + 1}`,
+                        type,
+                        health: parseInt(health),
+                        x: parseInt(x),
+                        y: parseInt(y)
+                    });
+                }
+            }
+
+            // Parse resource nodes data
+            gameState.resourceNodes = [];
+            const resourceNodeMatches = data.resourceNodes.matchAll(/game:(\w+)\d+ a game:ResourceNode;[\s\S]*?game:type "([^"]+)"[\s\S]*?game:amount (\d+)[\s\S]*?game:location "{x: (\d+), y: (\d+)}"/g);
+            
+            for (const match of resourceNodeMatches) {
+                const [_, id, type, amount, x, y] = match;
+                gameState.resourceNodes.push({
+                    id: `game:${id}${gameState.resourceNodes.length + 1}`,
+                    type,
+                    amount: parseInt(amount),
+                    x: parseInt(x),
+                    y: parseInt(y)
+                });
+            }
+
+            // Reset players array
+            gameState.players = [];
+            
+            // Find all player data keys in the data object
+            const playerKeys = Object.keys(data).filter(key => key.match(/^player\d+Resources$/));
+            
+            // Process each player
+            playerKeys.forEach(resourceKey => {
+                const playerId = resourceKey.replace('Resources', '');
+                const unitKey = `${playerId}Units`;
+                
+                // Parse player resources
+                const goldMatch = data[resourceKey].match(/game:gold (\d+)/);
+                const woodMatch = data[resourceKey].match(/game:wood (\d+)/);
+                const stoneMatch = data[resourceKey].match(/game:stone (\d+)/);
+                const foodMatch = data[resourceKey].match(/game:food (\d+)/);
+
+                const player = {
+                    id: playerId,
+                    resources: {
+                        gold: goldMatch ? parseInt(goldMatch[1]) : 0,
+                        wood: woodMatch ? parseInt(woodMatch[1]) : 0,
+                        stone: stoneMatch ? parseInt(stoneMatch[1]) : 0,
+                        food: foodMatch ? parseInt(foodMatch[1]) : 0
+                    },
+                    units: []
+                };
+
+                // Parse player units if available
+                if (data[unitKey]) {
+                    const unitMatches = data[unitKey].match(/game:units (game:[^.]+)/);
+                    if (unitMatches) {
+                        const unitId = unitMatches[1];
+                        player.units.push(unitId);
+
+                        // Set player for this unit
+                        const unit = gameState.units.find(u => u.id === unitId);
+                        if (unit) {
+                            unit.player = playerId;
+                        }
+                    }
+                }
+
+                // Add player to game state
+                gameState.players.push(player);
+                
+                // Assign a color to this player if not already assigned
+                if (!playerColors[playerId]) {
+                    // Generate a color based on player index
+                    const index = gameState.players.length - 1;
+                    const hue = (index * 137) % 360; // Golden ratio to distribute colors
+                    playerColors[playerId] = `hsl(${hue}, 80%, 50%)`;
+                }
+            });
+        }
+
+        // Load mock data for demo
+        function loadMockData() {
+            gameState.world = {
+                name: 'Demo World',
+                size: 100
+            };
+
+            // Create mock players (could be any number of players)
+            const mockPlayers = [
+                {
+                    id: 'player1',
+                    resources: {
+                        gold: 100,
+                        wood: 100,
+                        stone: 50,
+                        food: 200
+                    },
+                    units: []
+                },
+                {
+                    id: 'player2',
+                    resources: {
+                        gold: 100,
+                        wood: 100,
+                        stone: 50,
+                        food: 200
+                    },
+                    units: []
+                },
+                // Could add more players here if needed
+            ];
+
+            // Assign colors to players
+            mockPlayers.forEach((player, index) => {
+                if (!playerColors[player.id]) {
+                    const hue = (index * 137) % 360; // Golden ratio to distribute colors
+                    playerColors[player.id] = `hsl(${hue}, 80%, 50%)`;
+                }
+            });
+
+            // Create mock units
+            gameState.units = [
+                { id: 'game:unit1', name: 'Warrior', attack: 10, defense: 5, health: 100, x: 10, y: 10, player: mockPlayers[0].id },
+                { id: 'game:unit2', name: 'Warrior', attack: 10, defense: 5, health: 100, x: 80, y: 80, player: mockPlayers[1].id }
+            ];
+
+            // Assign units to players
+            mockPlayers[0].units.push('game:unit1');
+            mockPlayers[1].units.push('game:unit2');
+
+            gameState.buildings = [
+                { id: 'game:townCenter1', type: 'townCenter', health: 500, x: 15, y: 15 }
+            ];
+
+            gameState.resourceNodes = [
+                { id: 'game:goldMine1', type: 'gold', amount: 1000, x: 20, y: 30 },
+                { id: 'game:forest1', type: 'wood', amount: 2000, x: 40, y: 15 },
+                { id: 'game:quarry1', type: 'stone', amount: 1500, x: 60, y: 50 },
+                { id: 'game:farm1', type: 'food', amount: 3000, x: 25, y: 70 }
+            ];
+
+            // Set players
+            gameState.players = mockPlayers;
+
+            // Update UI
+            updateUI();
+
+            // Render game state
+            renderGameState();
+        }
+
+        // Update UI with game state
+        function updateUI() {
+            // Update players list
+            const playersDiv = document.getElementById('playersList');
+            playersDiv.innerHTML = gameState.players.map(player => `
+                <div class="entity ${player.id}" style="border-left: 4px solid ${playerColors[player.id] || '#000'}">
+                    ${player.id}
+                </div>
+            `).join('');
+
+            // Update player resources
+            const resourcesDiv = document.getElementById('playerResources');
+            resourcesDiv.innerHTML = gameState.players.map(player => `
+                <div class="entity ${player.id}" style="border-left: 4px solid ${playerColors[player.id] || '#000'}">
+                    <strong>${player.id}</strong><br>
+                    Gold: ${player.resources.gold}<br>
+                    Wood: ${player.resources.wood}<br>
+                    Stone: ${player.resources.stone}<br>
+                    Food: ${player.resources.food}
+                </div>
+            `).join('');
+
+            // Update units list
+            const unitsDiv = document.getElementById('unitsList');
+            unitsDiv.innerHTML = gameState.units.map(unit => `
+                <div class="entity ${unit.player}" style="border-left: 4px solid ${playerColors[unit.player] || '#000'}">
+                    ${unit.name} (${unit.id})<br>
+                    Owner: ${unit.player}<br>
+                    Attack: ${unit.attack}, Defense: ${unit.defense}, Health: ${unit.health}<br>
+                    Location: (${unit.x}, ${unit.y})
+                </div>
+            `).join('');
+
+            // Update buildings list
+            const buildingsDiv = document.getElementById('buildingsList');
+            buildingsDiv.innerHTML = gameState.buildings.map(building => `
+                <div class="entity">
+                    ${building.type} (${building.id})<br>
+                    Health: ${building.health}<br>
+                    Location: (${building.x}, ${building.y})
+                </div>
+            `).join('');
+
+            // Update resource nodes list
+            const resourceNodesDiv = document.getElementById('resourceNodesList');
+            resourceNodesDiv.innerHTML = gameState.resourceNodes.map(node => `
+                <div class="entity">
+                    ${node.type} (${node.id})<br>
+                    Amount: ${node.amount}<br>
+                    Location: (${node.x}, ${node.y})
+                </div>
+            `).join('');
+            
+            // Update map legend with dynamic player colors
+            updateMapLegend();
+        }
+        
+        // Update map legend with dynamic player colors
+        function updateMapLegend() {
+            const legendContainer = document.querySelector('.map-legend');
+            
+            // Clear existing player legend items
+            const existingPlayerItems = legendContainer.querySelectorAll('.legend-item.player-item');
+            existingPlayerItems.forEach(item => item.remove());
+            
+            // Add player legend items dynamically
+            gameState.players.forEach(player => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item player-item';
+                
+                const colorSpan = document.createElement('span');
+                colorSpan.className = 'legend-color';
+                colorSpan.style.backgroundColor = playerColors[player.id] || '#000000';
+                
+                legendItem.appendChild(colorSpan);
+                legendItem.appendChild(document.createTextNode(` ${player.id} Unit`));
+                
+                // Insert player items at the beginning of the legend
+                const firstNonPlayerItem = legendContainer.querySelector('.legend-item:not(.player-item)');
+                legendContainer.insertBefore(legendItem, firstNonPlayerItem);
+            });
+        }
+
+        // Render game state on canvas
+        function renderGameState() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate scale factor
+            const scale = Math.min(canvas.width, canvas.height) / gameState.world.size;
+
+            // Draw grid
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= gameState.world.size; i += 10) {
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(i * scale, 0);
+                ctx.lineTo(i * scale, canvas.height);
+                ctx.stroke();
+
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(0, i * scale);
+                ctx.lineTo(canvas.width, i * scale);
+                ctx.stroke();
+            }
+
+            // Draw resource nodes
+            gameState.resourceNodes.forEach(node => {
+                ctx.fillStyle = getResourceNodeColor(node.type);
+                ctx.beginPath();
+                ctx.arc(node.x * scale, node.y * scale, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw resource node label
+                ctx.fillStyle = '#000';
+                ctx.font = '10px Arial';
+                ctx.fillText(`${node.type} (${node.amount})`, node.x * scale - 30, node.y * scale - 10);
+            });
+
+            // Draw buildings
+            gameState.buildings.forEach(building => {
+                ctx.fillStyle = getBuildingColor(building.type);
+                ctx.fillRect(building.x * scale - 10, building.y * scale - 10, 20, 20);
+
+                // Draw building label
+                ctx.fillStyle = '#000';
+                ctx.font = '10px Arial';
+                ctx.fillText(building.type, building.x * scale - 20, building.y * scale - 15);
+            });
+
+            // Draw units
+            gameState.units.forEach(unit => {
+                ctx.fillStyle = getUnitColor(unit.player);
+                ctx.beginPath();
+                ctx.arc(unit.x * scale, unit.y * scale, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw unit label
+                ctx.fillStyle = '#000';
+                ctx.font = '10px Arial';
+                ctx.fillText(`${unit.name} (${unit.id.split(':')[1]})`, unit.x * scale - 30, unit.y * scale - 10);
+            });
+            
+            // Draw target position if active
+            if (targetPosition) {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(targetPosition.x * scale, targetPosition.y * scale, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Draw line from selected unit to target
+                if (selectedUnit) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(selectedUnit.x * scale, selectedUnit.y * scale);
+                    ctx.lineTo(targetPosition.x * scale, targetPosition.y * scale);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Helper functions for colors
+        function getResourceNodeColor(type) {
+            switch (type) {
+                case 'gold': return '#FFD700';
+                case 'wood': return '#8B4513';
+                case 'stone': return '#A9A9A9';
+                case 'food': return '#32CD32';
+                default: return '#000000';
+            }
+        }
+
+        function getBuildingColor(type) {
+            switch (type) {
+                case 'townCenter': return '#4169E1';
+                case 'barracks': return '#8B0000';
+                case 'farm': return '#32CD32';
+                case 'mine': return '#A9A9A9';
+                case 'tower': return '#800080';
+                default: return '#000000';
+            }
+        }
+
+        function getUnitColor(playerId) {
+            // Use the dynamic player colors map
+            if (playerColors[playerId]) {
+                return playerColors[playerId];
+            }
+            
+            // Fallback color if player not found
+            return '#000000';
+        }
+        
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', loadGameState);
+    </script>
+    <script src="interactive-map.js"></script>
+</body>
+</html>
