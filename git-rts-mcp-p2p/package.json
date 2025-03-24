@@ -1,0 +1,38 @@
+{
+  "name": "git-rts-mcp-p2p",
+  "version": "0.1.0",
+  "description": "Enhanced P2P MCP server for Git-RTS",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "git",
+    "rts",
+    "game",
+    "mcp",
+    "p2p"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "axios": "^1.6.2",
+    "n3": "^1.17.2",
+    "express": "^4.17.1",
+    "node-fetch": "^3.3.2",
+    "rdf-ext": "^2.5.2",
+    "sparql-engine": "^0.8.3",
+    "sparql-http-client": "^3.0.1",
+    "sparqljs": "^3.7.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.11.12",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "git-rts-p2p": {
+      "command": "node",
+      "args": ["C:/Users/markj/Desktop/git-rts-cli/git-rts-mcp-p2p/build/index.js"],
+      "env": {
+        "GITHUB_USERNAME": "markjspivey-xwisee",
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPOSITORY": "git-rts-game",
+        "GAME_REPO_DIR": "C:/Users/markj/Desktop/game-repo"
+      },
+      "disabled": false,
+      "timeout": 60,
+      "alwaysAllow": []
+    }
+  }
+}
