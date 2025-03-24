@@ -12,6 +12,8 @@ const combat = require('./combat');
 const economy = require('./economy');
 const diplomacy = require('./diplomacy');
 const gitGameMechanics = require('./git-game-mechanics');
+const peer = require('./commands/peer');
+const hook = require('./commands/hook');
 
 // Load GitHub configuration
 async function loadGitHubConfig() {
@@ -446,6 +448,12 @@ economy.program.parse(process.argv);
 // Add diplomacy commands
 diplomacy.program.parse(process.argv);
 
+// Add peer commands
+peer.parse(process.argv);
+
+// Add hook commands
+hook.parse(process.argv);
+
 // Display help if no arguments provided
 if (process.argv.length <= 2) {
   console.log('Git-RTS: A Git-based Real-Time Strategy Game');
@@ -458,6 +466,21 @@ if (process.argv.length <= 2) {
   console.log('  create-player <player-name>         Create a new player in the game');
   console.log('  join-game <repo-url> <player-name>  Join a game as a player');
   console.log('  sync-turn                           Perform a turn-based synchronization');
+  console.log('');
+  console.log('Peer-to-Peer Network:');
+  console.log('  peer add <name> <url>               Add a new peer to the network');
+  console.log('  peer remove <nameOrUrl>             Remove a peer from the network');
+  console.log('  peer list                           List all peers in the network');
+  console.log('  peer sync [nameOrUrl]               Synchronize with a peer or all peers');
+  console.log('  peer push [nameOrUrl]               Push changes to a peer or all peers');
+  console.log('  peer status [nameOrUrl]             Check the status of a peer or all peers');
+  console.log('  peer settings                       Update peer network settings');
+  console.log('');
+  console.log('Git Hooks:');
+  console.log('  hook install [hookName]             Install a Git hook or all hooks');
+  console.log('  hook uninstall [hookName]           Uninstall a Git hook or all hooks');
+  console.log('  hook update [hookName]              Update a Git hook or all hooks');
+  console.log('  hook list                           List all Git hooks and their status');
   console.log('');
   console.log('Game Actions:');
   console.log('  move <unit-uri> <x> <y>             Move a unit to a new location');

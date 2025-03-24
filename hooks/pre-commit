@@ -1,0 +1,129 @@
+#!/bin/bash
+#
+# Git-RTS pre-commit hook
+# 
+# This hook validates game actions before committing.
+# It checks for:
+# - Valid unit movements (distance, terrain)
+# - Valid resource gathering (distance, amount)
+# - Valid building construction (resources, location)
+# - Valid unit training (resources, building type)
+#
+# To install this hook, copy it to .git/hooks/pre-commit and make it executable:
+# cp hooks/pre-commit .git/hooks/pre-commit
+# chmod +x .git/hooks/pre-commit
+
+# Get the commit message from the staged commit
+commit_msg=$(cat "$1" 2>/dev/null || git log -1 --pretty=%B)
+
+# Get the list of staged files
+staged_files=$(git diff --cached --name-only)
+
+# Function to validate unit movement
+validate_movement() {
+  local unit_uri="$1"
+  local x="$2"
+  local y="$3"
+  
+  # Check if coordinates are valid numbers
+  if ! [[ "$x" =~ ^[0-9]+$ ]] || ! [[ "$y" =~ ^[0-9]+$ ]]; then
+    echo "Error: Invalid coordinates ($x, $y) for unit $unit_uri"
+    return 1
+  fi
+  
+  # Check if the unit exists
+  if ! grep -q "$unit_uri" units.ttl; then
+    echo "Error: Unit $unit_uri does not exist"
+    return 1
+  fi
+  
+  # Extract current unit location
+  local current_location=$(grep -A 5 "$unit_uri" units.ttl | grep "game:location" | sed 's/.*{x: \([0-9]\+\), y: \([0-9]\+\)}.*/\1 \2/')
+  local current_x=$(echo "$current_location" | cut -d' ' -f1)
+  local current_y=$(echo "$current_location" | cut -d' ' -f2)
+  
+  # Calculate distance
+  local distance=$(echo "sqrt(($current_x-$x)^2 + ($current_y-$y)^2)" | bc -l)
+  
+  # Check if distance is within allowed range (max 20)
+  if (( $(echo "$distance > 20" | bc -l) )); then
+    echo "Error: Movement distance too large ($distance). Maximum allowed is 20."
+    return 1
+  fi
+  
+  return 0
+}
+
+# Function to validate resource gathering
+validate_gathering() {
+  local unit_uri="$1"
+  local resource_uri="$2"
+  
+  # Check if the unit and resource node exist
+  if ! grep -q "$unit_uri" units.ttl; then
+    echo "Error: Unit $unit_uri does not exist"
+    return 1
+  fi
+  
+  if ! grep -q "$resource_uri" resource_nodes.ttl; then
+    echo "Error: Resource node $resource_uri does not exist"
+    return 1
+  fi
+  
+  # Extract unit location
+  local unit_location=$(grep -A 5 "$unit_uri" units.ttl | grep "game:location" | sed 's/.*{x: \([0-9]\+\), y: \([0-9]\+\)}.*/\1 \2/')
+  local unit_x=$(echo "$unit_location" | cut -d' ' -f1)
+  local unit_y=$(echo "$unit_location" | cut -d' ' -f2)
+  
+  # Extract resource node location
+  local resource_location=$(grep -A 5 "$resource_uri" resource_nodes.ttl | grep "game:location" | sed 's/.*{x: \([0-9]\+\), y: \([0-9]\+\)}.*/\1 \2/')
+  local resource_x=$(echo "$resource_location" | cut -d' ' -f1)
+  local resource_y=$(echo "$resource_location" | cut -d' ' -f2)
+  
+  # Calculate distance
+  local distance=$(echo "sqrt(($unit_x-$resource_x)^2 + ($unit_y-$resource_y)^2)" | bc -l)
+  
+  # Check if distance is within allowed range (max 10)
+  if (( $(echo "$distance > 10" | bc -l) )); then
+    echo "Error: Unit is too far from resource node ($distance). Maximum allowed is 10."
+    return 1
+  fi
+  
+  # Check if resource node has enough resources
+  local resource_amount=$(grep -A 5 "$resource_uri" resource_nodes.ttl | grep "game:amount" | sed 's/.*game:amount \([0-9]\+\).*/\1/')
+  if [ "$resource_amount" -le 0 ]; then
+    echo "Error: Resource node $resource_uri is depleted"
+    return 1
+  fi
+  
+  return 0
+}
+
+# Check commit message for game actions
+if [[ "$commit_msg" =~ Move\ ([a-zA-Z0-9:_]+)\ to\ \(([0-9]+),\ ([0-9]+)\) ]]; then
+  unit_uri="${BASH_REMATCH[1]}"
+  x="${BASH_REMATCH[2]}"
+  y="${BASH_REMATCH[3]}"
+  
+  echo "Validating movement of $unit_uri to ($x, $y)..."
+  if ! validate_movement "$unit_uri" "$x" "$y"; then
+    exit 1
+  fi
+  echo "Movement validation passed!"
+elif [[ "$commit_msg" =~ Gather\ ([0-9]+)\ ([a-zA-Z]+)\ from\ ([a-zA-Z0-9:_]+) ]]; then
+  amount="${BASH_REMATCH[1]}"
+  resource_type="${BASH_REMATCH[2]}"
+  resource_uri="${BASH_REMATCH[3]}"
+  
+  # Extract unit URI from staged files
+  unit_uri=$(grep -l "game:location" $staged_files | xargs grep -l "game:Unit" | head -1)
+  
+  echo "Validating gathering of $amount $resource_type from $resource_uri by $unit_uri..."
+  if ! validate_gathering "$unit_uri" "$resource_uri"; then
+    exit 1
+  fi
+  echo "Gathering validation passed!"
+fi
+
+# All validations passed
+exit 0

@@ -1,0 +1,262 @@
+#!/bin/bash
+#
+# Git-RTS post-commit hook
+# 
+# This hook triggers game events after a commit.
+# It handles:
+# - Random resource discovery
+# - Weather events
+# - Achievement unlocks
+# - Quest progression
+#
+# To install this hook, copy it to .git/hooks/post-commit and make it executable:
+# cp hooks/post-commit .git/hooks/post-commit
+# chmod +x .git/hooks/post-commit
+
+# Get the commit message
+commit_msg=$(git log -1 --pretty=%B)
+
+# Get the commit hash
+commit_hash=$(git log -1 --pretty=%H)
+
+# Get the commit timestamp
+commit_timestamp=$(git log -1 --pretty=%ct)
+
+# Get the commit author
+commit_author=$(git log -1 --pretty=%an)
+
+# Function to generate a random number between min and max
+random() {
+  local min=$1
+  local max=$2
+  echo $(( $min + RANDOM % ($max - $min + 1) ))
+}
+
+# Function to log game events
+log_event() {
+  local event_type="$1"
+  local event_details="$2"
+  local event_timestamp=$(date +%s)
+  
+  echo "[$event_timestamp] [$event_type] $event_details" >> game_events.log
+  echo "Event: [$event_type] $event_details"
+}
+
+# Function to discover random resources
+discover_resources() {
+  # Only trigger with 10% probability
+  if [ $(random 1 100) -le 10 ]; then
+    # Generate random coordinates
+    local x=$(random 0 100)
+    local y=$(random 0 100)
+    
+    # Determine resource type based on random number
+    local resource_types=("gold" "wood" "stone" "food")
+    local resource_type=${resource_types[$(random 0 3)]}
+    
+    # Generate random amount
+    local amount=$(random 500 2000)
+    
+    # Generate unique ID for the resource node
+    local resource_count=$(grep -c "game:ResourceNode" resource_nodes.ttl)
+    local resource_id="game:${resource_type}Mine$(($resource_count + 1))"
+    
+    # Add the new resource node to resource_nodes.ttl
+    cat >> resource_nodes.ttl << EOF
+
+${resource_id} a game:ResourceNode;
+ game:type "${resource_type}";
+ game:amount ${amount};
+ game:location "{x: ${x}, y: ${y}}".
+EOF
+    
+    # Log the event
+    log_event "DISCOVERY" "New ${resource_type} deposit discovered at (${x}, ${y}) with ${amount} resources"
+    
+    # Commit the change
+    git add resource_nodes.ttl
+    git commit -m "Discovered new ${resource_type} deposit at (${x}, ${y})" --no-verify
+  fi
+}
+
+# Function to trigger weather events
+trigger_weather() {
+  # Only trigger with 5% probability
+  if [ $(random 1 100) -le 5 ]; then
+    # Determine weather type based on random number
+    local weather_types=("rain" "snow" "fog" "clear" "storm")
+    local weather_type=${weather_types[$(random 0 4)]}
+    
+    # Determine duration in hours
+    local duration=$(random 1 24)
+    
+    # Determine intensity
+    local intensity=$(random 1 10)
+    
+    # Determine affected area
+    local center_x=$(random 0 100)
+    local center_y=$(random 0 100)
+    local radius=$(random 10 50)
+    
+    # Create or update weather.ttl
+    if [ ! -f weather.ttl ]; then
+      cat > weather.ttl << EOF
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix game: <http://example.org/game#>.
+
+game:weather a game:Weather;
+ game:type "${weather_type}";
+ game:intensity ${intensity};
+ game:duration ${duration};
+ game:center "{x: ${center_x}, y: ${center_y}}";
+ game:radius ${radius};
+ game:timestamp "$(date +%s)".
+EOF
+    else
+      # Update existing weather.ttl
+      sed -i "s/game:type \"[^\"]*\"/game:type \"${weather_type}\"/g" weather.ttl
+      sed -i "s/game:intensity [0-9]*/game:intensity ${intensity}/g" weather.ttl
+      sed -i "s/game:duration [0-9]*/game:duration ${duration}/g" weather.ttl
+      sed -i "s/game:center \"{x: [0-9]*, y: [0-9]*}\"/game:center \"{x: ${center_x}, y: ${center_y}}\"/g" weather.ttl
+      sed -i "s/game:radius [0-9]*/game:radius ${radius}/g" weather.ttl
+      sed -i "s/game:timestamp \"[0-9]*\"/game:timestamp \"$(date +%s)\"/g" weather.ttl
+    fi
+    
+    # Log the event
+    log_event "WEATHER" "${weather_type} (intensity: ${intensity}) affecting area around (${center_x}, ${center_y}) with radius ${radius} for ${duration} hours"
+    
+    # Commit the change
+    git add weather.ttl
+    git commit -m "Weather change: ${weather_type} (intensity: ${intensity}) for ${duration} hours" --no-verify
+  fi
+}
+
+# Function to check for achievements
+check_achievements() {
+  # Create achievements.ttl if it doesn't exist
+  if [ ! -f achievements.ttl ]; then
+    cat > achievements.ttl << EOF
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix game: <http://example.org/game#>.
+
+game:achievements a game:AchievementList;
+ game:unlockedAchievements ().
+EOF
+  fi
+  
+  # Check for movement-related achievements
+  if [[ "$commit_msg" =~ Move\ ([a-zA-Z0-9:_]+)\ to\ \(([0-9]+),\ ([0-9]+)\) ]]; then
+    # Count total movements
+    local movement_count=$(git log --grep="Move .* to" --oneline | wc -l)
+    
+    # Check for "Explorer" achievement (10 movements)
+    if [ $movement_count -ge 10 ] && ! grep -q "game:explorer" achievements.ttl; then
+      sed -i "s/game:unlockedAchievements ([^)]*)/game:unlockedAchievements (&game:explorer)/g" achievements.ttl
+      cat >> achievements.ttl << EOF
+
+game:explorer a game:Achievement;
+ game:name "Explorer";
+ game:description "Move units 10 times";
+ game:unlockedAt "$(date +%s)".
+EOF
+      log_event "ACHIEVEMENT" "Unlocked: Explorer (Move units 10 times)"
+      git add achievements.ttl
+      git commit -m "Achievement unlocked: Explorer" --no-verify
+    fi
+    
+    # Check for "Pathfinder" achievement (50 movements)
+    if [ $movement_count -ge 50 ] && ! grep -q "game:pathfinder" achievements.ttl; then
+      sed -i "s/game:unlockedAchievements ([^)]*)/game:unlockedAchievements (&game:pathfinder)/g" achievements.ttl
+      cat >> achievements.ttl << EOF
+
+game:pathfinder a game:Achievement;
+ game:name "Pathfinder";
+ game:description "Move units 50 times";
+ game:unlockedAt "$(date +%s)".
+EOF
+      log_event "ACHIEVEMENT" "Unlocked: Pathfinder (Move units 50 times)"
+      git add achievements.ttl
+      git commit -m "Achievement unlocked: Pathfinder" --no-verify
+    fi
+  fi
+  
+  # Check for gathering-related achievements
+  if [[ "$commit_msg" =~ Gather\ ([0-9]+)\ ([a-zA-Z]+)\ from\ ([a-zA-Z0-9:_]+) ]]; then
+    local amount="${BASH_REMATCH[1]}"
+    local resource_type="${BASH_REMATCH[2]}"
+    
+    # Count total gatherings
+    local gathering_count=$(git log --grep="Gather .* from" --oneline | wc -l)
+    
+    # Check for "Gatherer" achievement (10 gatherings)
+    if [ $gathering_count -ge 10 ] && ! grep -q "game:gatherer" achievements.ttl; then
+      sed -i "s/game:unlockedAchievements ([^)]*)/game:unlockedAchievements (&game:gatherer)/g" achievements.ttl
+      cat >> achievements.ttl << EOF
+
+game:gatherer a game:Achievement;
+ game:name "Gatherer";
+ game:description "Gather resources 10 times";
+ game:unlockedAt "$(date +%s)".
+EOF
+      log_event "ACHIEVEMENT" "Unlocked: Gatherer (Gather resources 10 times)"
+      git add achievements.ttl
+      git commit -m "Achievement unlocked: Gatherer" --no-verify
+    fi
+    
+    # Check for resource-specific achievements
+    if [ "$resource_type" = "gold" ]; then
+      local gold_amount=$(grep "game:gold" player_resources.ttl | sed 's/.*game:gold \([0-9]\+\).*/\1/')
+      if [ $gold_amount -ge 1000 ] && ! grep -q "game:goldHoarder" achievements.ttl; then
+        sed -i "s/game:unlockedAchievements ([^)]*)/game:unlockedAchievements (&game:goldHoarder)/g" achievements.ttl
+        cat >> achievements.ttl << EOF
+
+game:goldHoarder a game:Achievement;
+ game:name "Gold Hoarder";
+ game:description "Accumulate 1000 gold";
+ game:unlockedAt "$(date +%s)".
+EOF
+        log_event "ACHIEVEMENT" "Unlocked: Gold Hoarder (Accumulate 1000 gold)"
+        git add achievements.ttl
+        git commit -m "Achievement unlocked: Gold Hoarder" --no-verify
+      fi
+    fi
+  fi
+}
+
+# Process based on commit message
+if [[ "$commit_msg" =~ Move\ ([a-zA-Z0-9:_]+)\ to\ \(([0-9]+),\ ([0-9]+)\) ]]; then
+  # Movement commit
+  unit_uri="${BASH_REMATCH[1]}"
+  x="${BASH_REMATCH[2]}"
+  y="${BASH_REMATCH[3]}"
+  
+  # Log the event
+  log_event "MOVEMENT" "$unit_uri moved to ($x, $y)"
+  
+  # Chance to discover resources when moving
+  discover_resources
+  
+  # Check for achievements
+  check_achievements
+  
+elif [[ "$commit_msg" =~ Gather\ ([0-9]+)\ ([a-zA-Z]+)\ from\ ([a-zA-Z0-9:_]+) ]]; then
+  # Gathering commit
+  amount="${BASH_REMATCH[1]}"
+  resource_type="${BASH_REMATCH[2]}"
+  resource_uri="${BASH_REMATCH[3]}"
+  
+  # Log the event
+  log_event "GATHERING" "Gathered $amount $resource_type from $resource_uri"
+  
+  # Check for achievements
+  check_achievements
+  
+  # Chance for weather to change after gathering
+  trigger_weather
+fi
+
+exit 0
