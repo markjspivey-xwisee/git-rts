@@ -1,0 +1,13 @@
+{
+  "peers": [],
+  "settings": {
+    "autoSync": true,
+    "syncInterval": 300,
+    "maxPeers": 10,
+    "discoveryEnabled": true
+  },
+  "metadata": {
+    "version": "0.1.0",
+    "lastUpdated": "2025-03-24T19:27:30.000Z"
+  }
+}
