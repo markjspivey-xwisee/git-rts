@@ -125,7 +125,7 @@ Git-RTS consists of several components that work together to create a seamless g
     │  │  Command Modules  │   │     │     │    ┌──────────────────┐  │
     │  │  ├─ peer.js       │◄──┼─────┼─────┼────┤  Web Interface   │  │
     │  │  ├─ hook.js       │◄──┼─────┼─────┼────┤  ├─ Game View    │  │
-    │  │  └─ ...           │   │     │     │    │  ├─ Unit Controls │  │
+    │  │  └─ ...           │   │     │     │    │  ├─ Map Renderer  │  │
     │  └───────────────────┘   │     │     │    │  └─ ...           │  │
     │  ┌───────────────────┐   │     │     │    └──────────────────┘  │
     │  │  Library Modules  │   │     │     │                          │
