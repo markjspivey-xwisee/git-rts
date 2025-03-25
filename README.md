@@ -110,141 +110,138 @@ git-rts peer status --all
 
 Git-RTS consists of several components that work together to create a seamless gaming experience:
 
-<div align="center">
-  <!-- Architecture diagram showing the components and their relationships -->
-  <pre>
-  ┌─────────────────────────────────────────────────────────────────────────┐
-  │                           Git-RTS Architecture                           │
-  └─────────────────────────────────────────────────────────────────────────┘
-                                      │
-                 ┌───────────────────┼───────────────────┐
-                 │                   │                   │
-    ┌────────────▼─────────────┐     │     ┌────────────▼─────────────┐
-    │      Git-RTS-CLI         │     │     │      Git-RTS-Web         │
-    │  ┌───────────────────┐   │     │     │                          │
-    │  │  Command Modules  │   │     │     │    ┌──────────────────┐  │
-    │  │  ├─ peer.js       │◄──┼─────┼─────┼────┤  Web Interface   │  │
-    │  │  ├─ hook.js       │◄──┼─────┼─────┼────┤  ├─ Game View    │  │
-    │  │  └─ ...           │   │     │     │    │  ├─ Map Renderer  │  │
-    │  └───────────────────┘   │     │     │    │  └─ ...           │  │
-    │  ┌───────────────────┐   │     │     │    └──────────────────┘  │
-    │  │  Library Modules  │   │     │     │                          │
-    │  │  ├─ peer-manager  │◄──┼─────┼─────┼──────────────────────────┘
-    │  │  ├─ hook-manager  │◄──┼─────┘     │
-    │  │  └─ ...           │   │           │
-    │  └───────────────────┘   │           │
-    └──────────────────────────┘           │
-                 │                         │
-                 │                         │
-    ┌────────────▼─────────────┐           │
-    │     Git Hooks            │           │
-    │  ┌───────────────────┐   │           │
-    │  │  pre-commit       │◄──┼───────────┘
-    │  │  ├─ Validate moves│   │
-    │  │  └─ Check rules   │   │
-    │  └───────────────────┘   │
-    │  ┌───────────────────┐   │
-    │  │  post-commit      │   │
-    │  │  ├─ Random events │   │
-    │  │  ├─ Achievements  │   │
-    │  │  └─ Weather       │   │
-    │  └───────────────────┘   │
-    └──────────────────────────┘
-                 │
-                 ▼
-    ┌──────────────────────────┐           ┌──────────────────────────┐
-    │     Game Repository      │◄──────────►     MCP Servers          │
-    │  ┌───────────────────┐   │           │  ┌───────────────────┐   │
-    │  │  Game State       │   │           │  │  git-rts-mcp      │   │
-    │  │  ├─ Units         │   │           │  │  ├─ Game actions  │   │
-    │  │  ├─ Resources     │   │           │  │  └─ AI integration│   │
-    │  │  ├─ Buildings     │   │           │  └───────────────────┘   │
-    │  │  └─ Map           │   │           │  ┌───────────────────┐   │
-    │  └───────────────────┘   │           │  │  git-rts-mcp-p2p  │   │
-    └──────────────────────────┘           │  │  ├─ Peer tools    │   │
-                 ▲                         │  │  ├─ Hook tools    │   │
-                 │                         │  │  └─ P2P actions   │   │
-                 │                         │  └───────────────────┘   │
-                 │                         └──────────────────────────┘
-                 │                                      ▲
-                 │                                      │
-    ┌────────────▼─────────────┐                        │
-    │     P2P Network          │                        │
-    │  ┌───────────────────┐   │                        │
-    │  │  Peer Management  │   │                        │
-    │  │  ├─ Add/Remove    │───┼────────────────────────┘
-    │  │  ├─ Sync          │   │
-    │  │  ├─ Push          │   │
-    │  │  └─ Status        │   │
-    │  └───────────────────┘   │
-    │                          │
-    │  ┌───────────────────┐   │
-    │  │  Remote Players   │   │
-    │  │  ├─ Player 2      │◄──┼───┐
-    │  │  ├─ Player 3      │◄──┼───┼──┐
-    │  │  └─ ...           │   │   │  │
-    │  └───────────────────┘   │   │  │
-    └──────────────────────────┘   │  │
-                                   │  │
-    ┌──────────────────────────┐   │  │
-    │  Player 2 Repository     │◄──┘  │
-    └──────────────────────────┘      │
-                                      │
-    ┌──────────────────────────┐      │
-    │  Player 3 Repository     │◄─────┘
-    └──────────────────────────┘
-  </pre>
-</div>
+### Architecture Diagram
 
-<div align="center">
-  <!-- Git Hooks Integration Diagram -->
-  <pre>
-  ┌─────────────────────────────────────────────────────────────────────────┐
-  │                      Git Hooks Game Mechanics                            │
-  └─────────────────────────────────────────────────────────────────────────┘
-                                      │
-                 ┌───────────────────┼───────────────────┐
-                 │                   │                   │
-    ┌────────────▼─────────────┐     │     ┌────────────▼─────────────┐
-    │     Pre-Commit Hook      │     │     │     Post-Commit Hook     │
-    │  (Validates Game Actions)│     │     │  (Triggers Game Events)  │
-    └──────────────────────────┘     │     └──────────────────────────┘
-                 │                   │                   │
-                 │                   │                   │
-    ┌────────────▼─────────────┐     │     ┌────────────▼─────────────┐
-    │ Validation Functions     │     │     │ Event Generation         │
-    │ ┌─────────────────────┐ │     │     │ ┌─────────────────────┐  │
-    │ │ validate_movement   │ │     │     │ │ discover_resources  │  │
-    │ │ - Check distance    │ │     │     │ │ - Random discovery  │  │
-    │ │ - Check terrain     │ │     │     │ │ - Add to game state │  │
-    │ └─────────────────────┘ │     │     │ └─────────────────────┘  │
-    │ ┌─────────────────────┐ │     │     │ ┌─────────────────────┐  │
-    │ │ validate_gathering  │ │     │     │ │ trigger_weather     │  │
-    │ │ - Check proximity   │ │     │     │ │ - Random weather    │  │
-    │ │ - Check resources   │ │     │     │ │ - Affects gameplay  │  │
-    │ └─────────────────────┘ │     │     │ └─────────────────────┘  │
-    │ ┌─────────────────────┐ │     │     │ ┌─────────────────────┐  │
-    │ │ validate_building   │ │     │     │ │ check_achievements  │  │
-    │ │ - Check resources   │ │     │     │ │ - Track progress    │  │
-    │ │ - Check location    │ │     │     │ │ - Unlock rewards    │  │
-    │ └─────────────────────┘ │     │     │ └─────────────────────┘  │
-    └──────────────────────────┘     │     └──────────────────────────┘
-                 │                   │                   │
-                 └───────────────────┼───────────────────┘
-                                     │
-                                     ▼
-                       ┌──────────────────────────┐
-                       │      Game Repository     │
-                       │  (Stores Game State)     │
-                       └──────────────────────────┘
-                                     │
-                                     ▼
-                       ┌──────────────────────────┐
-                       │      P2P Network         │
-                       │  (Syncs with Peers)      │
-                       └──────────────────────────┘
-  </pre>
-</div>
+```mermaid
+flowchart TD
+    subgraph "Git-RTS Architecture"
+        CLI["Git-RTS-CLI"]
+        WEB["Git-RTS-Web"]
+        HOOKS["Git Hooks"]
+        REPO["Game Repository"]
+        MCP["MCP Servers"]
+        P2P["P2P Network"]
+        PLAYER2["Player 2 Repository"]
+        PLAYER3["Player 3 Repository"]
+        
+        subgraph CLI
+            CMD["Command Modules"]
+            LIB["Library Modules"]
+            
+            CMD --> |contains| PEER_JS["peer.js"]
+            CMD --> |contains| HOOK_JS["hook.js"]
+            
+            LIB --> |contains| PEER_MGR["peer-manager"]
+            LIB --> |contains| HOOK_MGR["hook-manager"]
+        end
+        
+        subgraph WEB
+            WEB_INT["Web Interface"]
+            
+            WEB_INT --> |contains| GAME_VIEW["Game View"]
+            WEB_INT --> |contains| MAP_RENDER["Map Renderer"]
+        end
+        
+        subgraph HOOKS
+            PRE["pre-commit"]
+            POST["post-commit"]
+            
+            PRE --> |contains| VALIDATE["Validate moves"]
+            PRE --> |contains| CHECK["Check rules"]
+            
+            POST --> |contains| RANDOM["Random events"]
+            POST --> |contains| ACHIEVE["Achievements"]
+            POST --> |contains| WEATHER["Weather"]
+        end
+        
+        subgraph REPO
+            GAME_STATE["Game State"]
+            
+            GAME_STATE --> |contains| UNITS["Units"]
+            GAME_STATE --> |contains| RESOURCES["Resources"]
+            GAME_STATE --> |contains| BUILDINGS["Buildings"]
+            GAME_STATE --> |contains| MAP["Map"]
+        end
+        
+        subgraph MCP
+            MCP_BASIC["git-rts-mcp"]
+            MCP_P2P["git-rts-mcp-p2p"]
+            
+            MCP_BASIC --> |contains| GAME_ACTIONS["Game actions"]
+            MCP_BASIC --> |contains| AI_INT["AI integration"]
+            
+            MCP_P2P --> |contains| PEER_TOOLS["Peer tools"]
+            MCP_P2P --> |contains| HOOK_TOOLS["Hook tools"]
+            MCP_P2P --> |contains| P2P_ACTIONS["P2P actions"]
+        end
+        
+        subgraph P2P
+            PEER_MGMT["Peer Management"]
+            REMOTE["Remote Players"]
+            
+            PEER_MGMT --> |contains| ADD_RM["Add/Remove"]
+            PEER_MGMT --> |contains| SYNC["Sync"]
+            PEER_MGMT --> |contains| PUSH["Push"]
+            PEER_MGMT --> |contains| STATUS["Status"]
+            
+            REMOTE --> |contains| PLAYER2_REF["Player 2"]
+            REMOTE --> |contains| PLAYER3_REF["Player 3"]
+        end
+        
+        CLI --> HOOKS
+        WEB --> CLI
+        HOOKS --> REPO
+        REPO <--> MCP
+        REPO --> P2P
+        P2P --> MCP_P2P
+        
+        PLAYER2_REF --> PLAYER2
+        PLAYER3_REF --> PLAYER3
+    end
+```
+
+### Git Hooks Game Mechanics
+
+```mermaid
+flowchart TD
+    subgraph "Git Hooks Game Mechanics"
+        PRE["Pre-Commit Hook<br>(Validates Game Actions)"]
+        POST["Post-Commit Hook<br>(Triggers Game Events)"]
+        
+        subgraph "Validation Functions"
+            VALIDATE_MOVE["validate_movement<br>- Check distance<br>- Check terrain"]
+            VALIDATE_GATHER["validate_gathering<br>- Check proximity<br>- Check resources"]
+            VALIDATE_BUILD["validate_building<br>- Check resources<br>- Check location"]
+        end
+        
+        subgraph "Event Generation"
+            DISCOVER["discover_resources<br>- Random discovery<br>- Add to game state"]
+            TRIGGER["trigger_weather<br>- Random weather<br>- Affects gameplay"]
+            ACHIEVE["check_achievements<br>- Track progress<br>- Unlock rewards"]
+        end
+        
+        REPO["Game Repository<br>(Stores Game State)"]
+        P2P["P2P Network<br>(Syncs with Peers)"]
+        
+        PRE --> VALIDATE_MOVE
+        PRE --> VALIDATE_GATHER
+        PRE --> VALIDATE_BUILD
+        
+        POST --> DISCOVER
+        POST --> TRIGGER
+        POST --> ACHIEVE
+        
+        VALIDATE_MOVE --> REPO
+        VALIDATE_GATHER --> REPO
+        VALIDATE_BUILD --> REPO
+        
+        DISCOVER --> REPO
+        TRIGGER --> REPO
+        ACHIEVE --> REPO
+        
+        REPO --> P2P
+    end
+```
 
 ### Components
 
