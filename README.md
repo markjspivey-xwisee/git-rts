@@ -369,11 +369,9 @@ We welcome contributions from everyone! Check out our [Contributing Guide](CONTR
 - [x] Web interface
 - [x] Peer-to-peer architecture
 - [x] Git hooks for game mechanics
-- [ ] Advanced combat system
-- [ ] Technology tree
-- [ ] Diplomacy and alliances
-- [ ] Campaign mode
-- [ ] AI opponents
+- [x] Advanced combat system
+- [x] Technology tree
+- [x] Diplomacy and alliances
 
 ## 📚 Documentation
 
