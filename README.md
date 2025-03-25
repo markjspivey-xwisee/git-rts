@@ -39,6 +39,8 @@ _____  _  _        ____  _____  ____
 - **Innovative Gameplay**: Experience strategy gaming through the lens of distributed version control
 - **Complete History**: Every game action is recorded in the Git history
 - **Offline Play**: Make moves offline and synchronize when you reconnect
+- **Decentralized Multiplayer**: Play with others without a central server using peer-to-peer networking
+- **Automated Game Events**: Git hooks trigger random events and validate game actions
 - **Extensible**: Easy to mod and extend with new units, buildings, and mechanics
 - **Educational**: Learn Git concepts while having fun
 
@@ -80,6 +82,22 @@ npm start
 # Open your browser to http://localhost:3000
 ```
 
+### Using Peer-to-Peer Features
+
+```bash
+# Install Git hooks for game mechanics
+git-rts hook install --all
+
+# Add a peer to your network
+git-rts peer add "Player Two" https://github.com/otherplayer/their-rts-world.git
+
+# Synchronize with peers
+git-rts peer sync --all
+
+# Check peer status
+git-rts peer status --all
+```
+
 <div align="center">
   <!-- Note: Image placeholder - replace with actual game creation animation -->
   <pre>
@@ -106,6 +124,7 @@ Git-RTS consists of several components that work together to create a seamless g
 - **MCP Server**: Model Context Protocol server for AI integration
 - **Web Interface**: Browser-based game visualization
 - **Game Repository**: Git repository storing the game state
+- **P2P Network**: Decentralized peer-to-peer network for multiplayer
 
 ### Game Mechanics
 
@@ -115,6 +134,8 @@ Git-RTS leverages Git's distributed nature to implement game mechanics:
 - **Commits**: Game actions are recorded as commits
 - **Merges**: Turn synchronization happens through merges
 - **Pull Requests**: Special actions like alliances and trades
+- **Git Hooks**: Automated game events and validations
+- **Peer-to-Peer**: Decentralized multiplayer without a central server
 
 ## 🎲 Gameplay
 
@@ -186,7 +207,9 @@ This API enables:
 git-rts/
 ├── git-rts-cli/       # Command-line interface
 ├── git-rts-mcp/       # MCP server
+├── git-rts-mcp-p2p/   # Enhanced P2P MCP server
 ├── git-rts-web/       # Web interface
+├── hooks/             # Git hook templates
 └── docs/              # Documentation
 ```
 
@@ -219,6 +242,8 @@ We welcome contributions from everyone! Check out our [Contributing Guide](CONTR
 - [x] Basic game mechanics
 - [x] RESTful hypermedia API
 - [x] Web interface
+- [x] Peer-to-peer architecture
+- [x] Git hooks for game mechanics
 - [ ] Advanced combat system
 - [ ] Technology tree
 - [ ] Diplomacy and alliances
