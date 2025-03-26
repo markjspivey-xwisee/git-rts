@@ -13,6 +13,8 @@ const path = require('path');
 // Import command modules
 const peer = require('./commands/peer');
 const hook = require('./commands/hook');
+const server = require('./commands/server');
+const entity = require('./commands/entity');
 
 // Set up program information
 program
@@ -25,6 +27,12 @@ program.addCommand(peer);
 
 // Add hook commands
 program.addCommand(hook);
+
+// Add server commands
+program.addCommand(server);
+
+// Add entity commands
+program.addCommand(entity);
 
 // Parse command line arguments
 program.parse(process.argv);
@@ -50,6 +58,18 @@ if (process.argv.length <= 2) {
   console.log('  hook uninstall [hookName]           Uninstall a Git hook or all hooks');
   console.log('  hook update [hookName]              Update a Git hook or all hooks');
   console.log('  hook list                           List all Git hooks and their status');
+  console.log('');
+  console.log('REST API Server:');
+  console.log('  server start [--port <port>]        Start the REST API server');
+  console.log('  server generate-docs                Generate API documentation');
+  console.log('  server config                       Configure server settings');
+  console.log('');
+  console.log('Entity Management:');
+  console.log('  entity create <type> [options]      Create a new entity');
+  console.log('  entity get <entityId>               Get entity information');
+  console.log('  entity list                         List all entities');
+  console.log('  entity move <entityId> <x> <y>      Move an entity to a new position');
+  console.log('  entity apply-decorator <entityId> <decoratorType> [options]  Apply a decorator to an entity');
   console.log('');
   console.log('For more commands and options, use:');
   console.log('  git-rts --help');

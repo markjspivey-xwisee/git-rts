@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git-RTS Enhanced Demo Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .info {
+            background-color: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .map-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .map {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 2px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: #8BC34A;
+            border-radius: 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            position: relative;
+        }
+        .cell.resource {
+            background-color: #FFC107;
+        }
+        .unit {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+        }
+        .unit.player1 {
+            background-color: #2196F3;
+        }
+        .unit.player2 {
+            background-color: #F44336;
+        }
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-entry.player1 {
+            background-color: #E3F2FD;
+        }
+        .log-entry.player2 {
+            background-color: #FFEBEE;
+        }
+        .git-graph {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .commit {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .commit-hash {
+            background-color: #eee;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin-right: 10px;
+        }
+        .commit-message {
+            flex-grow: 1;
+        }
+        .commit-author {
+            color: #666;
+            font-style: italic;
+        }
+        .commit.merge {
+            background-color: #E8F5E9;
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Git-RTS Enhanced Demo Test</h1>
+    
+    <div class="info">
+        <p>This page allows you to test the enhanced Git-RTS demo that performs real Git operations.</p>
+        <p>The enhanced server is running on <a href="http://localhost:5002">http://localhost:5002</a>.</p>
+    </div>
+    
+    <div class="container">
+        <h2>GitHub Credentials</h2>
+        <form id="credentialsForm">
+            <label for="username1">GitHub Username 1:</label>
+            <input type="text" id="username1" name="username1" required>
+            
+            <label for="token1">GitHub Token 1:</label>
+            <input type="password" id="token1" name="token1" required>
+            
+            <label for="username2">GitHub Username 2:</label>
+            <input type="text" id="username2" name="username2" required>
+            
+            <label for="token2">GitHub Token 2:</label>
+            <input type="password" id="token2" name="token2" required>
+            
+            <button type="button" onclick="validateCredentials()">Validate Credentials</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    
+    <div class="container" id="repoContainer" style="display: none;">
+        <h2>Repositories</h2>
+        <div id="repositories"></div>
+        <button type="button" onclick="startDemo()">Start Demo</button>
+    </div>
+    
+    <div class="container" id="demoContainer" style="display: none;">
+        <h2>Demo Progress</h2>
+        
+        <div class="grid-container">
+            <div>
+                <h3>Game Map</h3>
+                <div class="map-container">
+                    <div class="map" id="gameMap"></div>
+                </div>
+            </div>
+            <div>
+                <h3>Game State</h3>
+                <div id="gameState" class="container">
+                    <div id="player1State">
+                        <h4>Player 1</h4>
+                        <div>Resources: Loading...</div>
+                        <div>Units: Loading...</div>
+                    </div>
+                    <div id="player2State">
+                        <h4>Player 2</h4>
+                        <div>Resources: Loading...</div>
+                        <div>Units: Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h3>Command Log</h3>
+        <div class="log-container" id="commandLog"></div>
+        
+        <h3>Git Graph</h3>
+        <div class="git-graph" id="gitGraph"></div>
+        
+        <button type="button" onclick="cleanup()">Clean Up</button>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        let sessionId = null;
+        let socket = null;
+        
+        function validateCredentials() {
+            const username1 = document.getElementById('username1').value;
+            const token1 = document.getElementById('token1').value;
+            const username2 = document.getElementById('username2').value;
+            const token2 = document.getElementById('token2').value;
+            
+            if (!username1 || !token1 || !username2 || !token2) {
+                showResult('Please fill in all fields', 'error');
+                return;
+            }
+            
+            showResult('Validating credentials...', '');
+            
+            fetch('http://localhost:5002/api/validate-credentials', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username1, token1, username2, token2 }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    sessionId = data.sessionId;
+                    showResult('Credentials validated successfully!', 'success');
+                    initializeRepositories();
+                    
+                    // Connect to socket
+                    socket = io('http://localhost:5002');
+                    socket.on('connect', () => {
+                        console.log('Connected to server');
+                        socket.emit('join', sessionId);
+                    });
+                    
+                    socket.on('command', (data) => {
+                        addCommandLog(data);
+                    });
+                    
+                    socket.on('commit', (data) => {
+                        addCommitToGraph(data);
+                    });
+                    
+                    socket.on('gameState', (data) => {
+                        updateGameState(data);
+                    });
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function initializeRepositories() {
+            if (!sessionId) {
+                showResult('No valid session', 'error');
+                return;
+            }
+            
+            showResult('Initializing repositories...', '');
+            
+            fetch('http://localhost:5002/api/initialize-repositories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('Repositories initialized successfully!', 'success');
+                    document.getElementById('repoContainer').style.display = 'block';
+                    
+                    const reposDiv = document.getElementById('repositories');
+                    reposDiv.innerHTML = '<h3>Created Repositories:</h3><ul>';
+                    data.repositories.forEach((repo, index) => {
+                        reposDiv.innerHTML += `<li>Player ${index + 1}: <a href="https://github.com/${repo.owner}/${repo.name}" target="_blank">${repo.owner}/${repo.name}</a></li>`;
+                    });
+                    reposDiv.innerHTML += '</ul>';
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function startDemo() {
+            if (!sessionId) {
+                showResult('No valid session', 'error');
+                return;
+            }
+            
+            showResult('Starting demo...', '');
+            
+            fetch('http://localhost:5002/api/start-demo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('Demo started successfully!', 'success');
+                    document.getElementById('demoContainer').style.display = 'block';
+                    initializeGameMap();
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function cleanup() {
+            if (!sessionId) {
+                showResult('No valid session', 'error');
+                return;
+            }
+            
+            showResult('Cleaning up...', '');
+            
+            fetch('http://localhost:5002/api/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('Cleanup completed successfully!', 'success');
+                    document.getElementById('repoContainer').style.display = 'none';
+                    document.getElementById('demoContainer').style.display = 'none';
+                    sessionId = null;
+                    
+                    // Disconnect socket
+                    if (socket) {
+                        socket.disconnect();
+                    }
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(`Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = type;
+        }
+        
+        function initializeGameMap() {
+            const mapDiv = document.getElementById('gameMap');
+            mapDiv.innerHTML = '';
+            
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${x}-${y}`;
+                    mapDiv.appendChild(cell);
+                }
+            }
+        }
+        
+        function updateGameState(gameState) {
+            // Update resources
+            const player1StateDiv = document.getElementById('player1State');
+            const player2StateDiv = document.getElementById('player2State');
+            
+            const player1 = gameState.players[0];
+            const player2 = gameState.players[1];
+            
+            player1StateDiv.innerHTML = `
+                <h4>Player 1</h4>
+                <div>Resources: 
+                    Gold: ${player1.resources.gold}, 
+                    Wood: ${player1.resources.wood}, 
+                    Stone: ${player1.resources.stone}, 
+                    Food: ${player1.resources.food}
+                </div>
+                <div>Units: ${player1.units.length}</div>
+            `;
+            
+            player2StateDiv.innerHTML = `
+                <h4>Player 2</h4>
+                <div>Resources: 
+                    Gold: ${player2.resources.gold}, 
+                    Wood: ${player2.resources.wood}, 
+                    Stone: ${player2.resources.stone}, 
+                    Food: ${player2.resources.food}
+                </div>
+                <div>Units: ${player2.units.length}</div>
+            `;
+            
+            // Clear existing units
+            const units = document.querySelectorAll('.unit');
+            units.forEach(unit => unit.remove());
+            
+            // Add units to map
+            gameState.players.forEach((player, playerIndex) => {
+                player.units.forEach(unit => {
+                    const cell = document.getElementById(`cell-${unit.x}-${unit.y}`);
+                    if (cell) {
+                        const unitDiv = document.createElement('div');
+                        unitDiv.className = `unit player${playerIndex + 1}`;
+                        unitDiv.title = `${unit.type} (${unit.health} HP)`;
+                        unitDiv.textContent = unit.type.charAt(0).toUpperCase();
+                        cell.appendChild(unitDiv);
+                    }
+                });
+            });
+            
+            // Add resources to map
+            gameState.map.cells.forEach(cell => {
+                if (cell.resource) {
+                    const cellDiv = document.getElementById(`cell-${cell.x}-${cell.y}`);
+                    if (cellDiv) {
+                        cellDiv.classList.add('resource');
+                        cellDiv.title = `${cell.resource.type}: ${cell.resource.amount}`;
+                    }
+                }
+            });
+        }
+        
+        function addCommandLog(data) {
+            const logDiv = document.getElementById('commandLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry player${data.player}`;
+            logEntry.innerHTML = `<strong>Player ${data.player}:</strong> ${data.command}<br><pre>${data.output}</pre>`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function addCommitToGraph(data) {
+            const graphDiv = document.getElementById('gitGraph');
+            const commitDiv = document.createElement('div');
+            commitDiv.className = `commit ${data.isMerge ? 'merge' : ''}`;
+            
+            const shortHash = data.hash.substring(0, 7);
+            
+            commitDiv.innerHTML = `
+                <span class="commit-hash">${shortHash}</span>
+                <span class="commit-message">${data.message}</span>
+                <span class="commit-author">${data.author}</span>
+            `;
+            
+            if (data.isMerge) {
+                commitDiv.innerHTML += `<br><span class="merge-info">Merge from: ${data.mergeFrom}</span>`;
+            }
+            
+            graphDiv.prepend(commitDiv);
+        }
+    </script>
+</body>
+</html>
